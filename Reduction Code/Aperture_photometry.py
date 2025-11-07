@@ -28,6 +28,9 @@ from photutils.aperture import ApertureStats
 from photutils.detection import DAOStarFinder
 from photutils.background import Background2D, MedianBackground
 from astropy.utils.exceptions import AstropyWarning
+#PSF modules
+from photutils.psf import extract_stars, EPSFStars, EPSFBuilder, EPSFModel
+from photutils.psf import PSFPhotometry, IterativePSFPhotometry
 
 import warnings
 from astropy.coordinates import SkyCoord
@@ -44,6 +47,39 @@ output_folder = '/home/users/qai11/Documents/Reduced_files/'
 #Read in the reduced science files
 science_files = glob.glob(os.path.join(main_folder, f'{star}_reduced_*.fits'))
 print(f'Number of reduced science files: {len(science_files)}')
+
+#%% Find Sources
+def find_sources(data, x, y):
+    """
+    FROM ASTR211 LAB 2
+    
+    Find sources in the image data using DAOStarFinder.
+
+    Parameters:
+    data (2D array): The image data.
+    x (float): Approximate x-coordinate of the target star.
+    y (float): Approximate y-coordinate of the target star.
+
+    Returns:
+    sources (Table): Table of detected sources.
+    """
+    mean, median, std = sigma_clipped_stats(data, sigma=3.0)  # Adjust sigma as needed.
+    print(mean,median,std)
+
+    # Initialize DAOStarFinder with the background statistics
+    daofind = DAOStarFinder(fwhm=3.0, threshold=10.0*std)  # Adjust fwhm and threshold as needed
+    sources = daofind(data) # Find sources in the image
+
+    # Filter sources to find the target
+    search_radius = 3
+    filtered_sources = sources[(np.abs(sources['xcentroid'] - x) <= search_radius) & (np.abs(sources['ycentroid'] - y) <= search_radius)]
+
+    positions = np.zeros((len(filtered_sources), 2))
+    positions[:,0] = filtered_sources['xcentroid'].value
+    positions[:,1] = filtered_sources['ycentroid'].value
+    
+    return positions
+
 
 #%% Perform WCS transformation to find pixel coordinates
 def world_to_pixel(ra, dec, wcs):
@@ -98,6 +134,7 @@ def perform_aperture_photometry(image_data, positions, aperture_radius=5, annulu
     
     return phot_table
 
+
 #%% Process each science file
 #apply WCS to get pixel coordinates for all science files
 wcs_hdul = fits.open(main_folder+'wcs.fits')
@@ -109,7 +146,7 @@ for file in science_files:
     hdul = fits.open(file)
     hdr = hdul[0].header
     data = hdul[0].data.copy()
-
+    #Find sources in the image using find sources function
 
     #Taget star coordinates (example coordinates, replace with actual star coordinates)
     ra = (23 * 15) + (28 / 4) + (46.95 / 240)  # Convert RA from hours, minutes, seconds to degrees
@@ -128,7 +165,11 @@ for file in science_files:
     
     results.append(phot_table)
     hdul.close()
-    
+#%%
+plt.figure()
+plt.imshow(data, cmap='gray', origin='lower', vmin=np.percentile(data, 5), vmax=np.percentile(data, 95))
+plt.scatter(star_positions[0][0], star_positions[0][1], color='red', marker='x')
+plt.show()
 #%% Combine results and save to CSV
 all_results = pd.concat([r.to_pandas() for r in results], ignore_index=True)
 all_results = all_results[['time', 'aperture_sum_bkgsub']]  # Reorder columns

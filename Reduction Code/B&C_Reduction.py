@@ -155,6 +155,9 @@ plt.show()
 master_dark_science = np.median(np.array(darks4science_data), axis=0)
 master_dark_flats_5 = np.median(np.array(darks4flats_data_5), axis=0)
 master_dark_flats_1 = np.median(np.array(darks4flats_data_1), axis=0)
+#Save master dark science
+hdu = fits.PrimaryHDU(master_dark_science)
+hdu.writeto(output_folder + 'master_dark_science.fits', overwrite=True)
 
 plt.figure()
 plt.imshow(master_dark_science, cmap = 'gray', vmin = np.nanpercentile(master_dark_science, 2), vmax = np.nanpercentile(master_dark_science, 98)) # 2d plotting
@@ -192,6 +195,10 @@ for flat, hdr in zip(flats_data, flats_headers):
 master_flat_05 = np.median(np.array(corrected_flats_05), axis=0)
 master_flat_1 = np.median(np.array(corrected_flats_1), axis=0)
 master_flat_combined = np.median(np.array([master_flat_05, master_flat_1]), axis=0)
+#Save the master flat
+hdu = fits.PrimaryHDU(master_flat_combined)
+hdu.writeto(output_folder + 'master_flat_combined.fits', overwrite=True)
+
 
 #plot the master flats
 plt.figure()
