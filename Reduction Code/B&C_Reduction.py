@@ -29,6 +29,7 @@ warnings.filterwarnings('ignore', category=RuntimeWarning) #Ignores some warning
 #%% Census Code
 #Name of target
 star = 'ZZ_Psc'
+# folders = ['20251119','20251122','20251122'] 
 #Define Folders
 main_folder = '/home/users/qai11/data/Photometery_RAW/20251030/' # Filenames are descriptive, exact files, minimum exposures times
 flats_folder = '/home/users/qai11/data/Photometery_RAW/20250913/'
