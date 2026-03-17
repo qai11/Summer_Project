@@ -27,7 +27,7 @@ Reduction and analysis pipeline for B&C data and frequency measurements of the p
 
 ```
 cd existing_repo
-git remote add origin https://eng-git.canterbury.ac.nz/mwega/quin-masters-code.git
+git remote add origin https://github.com/qai11/Summer_Project.git
 git branch -M main
 git push -uf origin main
 ```
